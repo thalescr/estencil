@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.awt.Color;
+import java.lang.IllegalArgumentException;
 
 public class Stencil {
     public static Color[][] initMap(int size) {
@@ -72,6 +73,38 @@ public class Stencil {
         }
     }
 
+    public static String pointToLine(int x, int y, Color color) {
+        return String.valueOf(x) + " " +
+            String.valueOf(y) + " " +
+            String.valueOf(color.getRed()) + " " +
+            String.valueOf(color.getGreen()) + " " +
+            String.valueOf(color.getBlue());
+    }
+
+    public static Map<String, Object> lineToPoint(String line, int size) {
+        if (line == null) {
+            throw new IllegalArgumentException();
+        }
+
+        Map<String, Object> point = new HashMap<String, Object>();
+        int xCoord = Integer.parseInt(line.split(" ")[0]);
+        int yCoord = Integer.parseInt(line.split(" ")[1]);
+
+        int red = Integer.parseInt(line.split(" ")[2]);
+        int green = Integer.parseInt(line.split(" ")[3]);
+        int blue = Integer.parseInt(line.split(" ")[4]);
+
+        if (xCoord > size || yCoord > size || red > 255 || green > 255 || blue > 255) {
+            System.out.println("Erro ao ler linha: " + line);
+            throw new IllegalArgumentException();
+        }
+
+        point.put("x", xCoord);
+        point.put("y", yCoord);
+        point.put("color", new Color(red, green, blue));
+        return point;
+    }
+
     public static Map<String, Object> inputFileToMap() {
         Color[][] map = new Color[1][1];
         List<int[]> fixedPoints = new ArrayList<int[]>();
@@ -85,23 +118,10 @@ public class Stencil {
             map = initMap(size);
 
             for (int i = 0; i < nFixedPoints; i = i + 1) {
-                currentLine = reader.readLine();
-                if (currentLine == null) {
-                    break;
-                }
-
-                int xCoord = Integer.parseInt(currentLine.split(" ")[0]);
-                int yCoord = Integer.parseInt(currentLine.split(" ")[1]);
-
-                int red = Integer.parseInt(currentLine.split(" ")[2]);
-                int green = Integer.parseInt(currentLine.split(" ")[3]);
-                int blue = Integer.parseInt(currentLine.split(" ")[4]);
-
-                if (xCoord + 1 > size || yCoord + 1 > size || red > 255 || green > 255 || blue > 255) {
-                    System.out.println("Nao foi possivel incluir o ponto fixo: " + currentLine);
-                    break;
-                }
-                map[xCoord][yCoord] = new Color(red, green, blue);
+                Map<String, Object> point = lineToPoint(reader.readLine(), size);
+                int xCoord = (int) point.get("x");
+                int yCoord = (int) point.get("y");
+                map[xCoord][yCoord] = (Color) point.get("color");
                 int[] coord = {xCoord, yCoord};
                 fixedPoints.add(coord);
             }

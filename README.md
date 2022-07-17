@@ -12,9 +12,11 @@
 
 - **Sequential.java**: contém instruções para rodar o algoritmo de estêncil sequencialmente.
 
-- **Client.java**: *futuro*
+- **Client.java**: descreve um cliente que pode ser instanciado
 
-- **Server.java**: *futuro*
+- **Server.java**: descreve um servidor que aceitará conexões de vários clientes uma vez instanciado
+
+- **Main.java**: instruções principais para executar o algoritmo de estencil de forma distribuída
 
 ### Para rodar sequencialmente
 
