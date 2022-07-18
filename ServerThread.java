@@ -24,7 +24,6 @@ public class ServerThread extends Thread {
         String message = "";
         while (message != null) {
             try {
-                message = this.input.readLine();
                 if (message.startsWith("request line:")) {
                     int lineNumber = Integer.parseInt(message.split(":")[1]);
                     List<String> lines = this.server.getLine(lineNumber);
@@ -45,6 +44,7 @@ public class ServerThread extends Thread {
                     Color color = (Color) point.get("color");
                     this.server.map[xCoord][yCoord] = color;
                 }
+                message = this.input.readLine();
             } catch (IOException err) {
                 err.printStackTrace();
             }

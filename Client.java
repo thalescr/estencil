@@ -20,14 +20,14 @@ public class Client {
         for (int i = 0; i < this.linesToCalculate.length; i ++) {
             try {
                 this.updateLine(this.linesToCalculate[i]);
-                System.out.println(String.valueOf(this.linesToCalculate[i]));
             } catch (IOException err) {
                 err.printStackTrace();
             }
         }
     }
 
-    public List<Color> calculateLine(int i) {
+    public List<Color> calculateLine() {
+        int i = 1;
         List<Color> newLine = new ArrayList<Color>();
         for (int j = 1; j < this.size - 1; j ++) {
             Color color = Stencil.avgColor(
@@ -52,12 +52,12 @@ public class Client {
                 int xCoord = (int) point.get("x");
                 int yCoord = (int) point.get("y");
                 Color color = (Color) point.get("color");
-                this.map[xCoord][yCoord] = color;
+                this.map[(xCoord - line) + 1][yCoord] = color;
             }
             response = this.input.readLine();
         }
 
-        List<Color> newLine = this.calculateLine(line);
+        List<Color> newLine = this.calculateLine();
         for (int j = 0; j < newLine.size(); j ++) {
             this.output.writeBytes(Stencil.pointToLine(line, j + 1, newLine.get(j)) + "\n");
         }
@@ -67,7 +67,14 @@ public class Client {
     public Client(int size, int[] linesToCalculate) throws IOException {
         this.size = size;
         this.linesToCalculate = linesToCalculate;
-        this.map = Stencil.initMap(size);
+        this.map = new Color[3][this.size];
+        this.map[0][0] = new Color(127, 127, 127);
+        this.map[1][0] = new Color(127, 127, 127);
+        this.map[2][0] = new Color(127, 127, 127);
+        this.map[0][this.size - 1] = new Color(127, 127, 127);
+        this.map[1][this.size - 1] = new Color(127, 127, 127);
+        this.map[2][this.size - 1] = new Color(127, 127, 127);
+
         this.socket = new Socket("localhost", 5564);  
         this.output = new DataOutputStream(this.socket.getOutputStream());
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));

@@ -33,7 +33,9 @@ public class Main {
             clients.add(client);
         }
 
-        for (int iter = 0; iter < 1000; iter ++) {
+        StopWatch stopWatch = new StopWatch();
+
+        for (int iter = 0; iter < 10000; iter ++) {
             List<Thread> threads = new ArrayList<Thread>();
             clients.forEach(client -> {
                 Thread thread = new Thread(() -> {
@@ -51,5 +53,17 @@ public class Main {
                 }
             });
         }
+
+        clients.forEach(client -> {
+            try {
+                client.socket.close();
+            } catch (IOException err) {
+                err.printStackTrace();
+            }
+        });
+
+        stopWatch.printElapsedTime();
+
+        Stencil.outputToFile(server.map);
     }
 }
