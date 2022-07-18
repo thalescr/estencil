@@ -4,6 +4,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.awt.Color;
 
 public class Client {
@@ -12,16 +14,39 @@ public class Client {
     Socket socket;
     DataOutputStream output;
     BufferedReader input;
+    int[] linesToCalculate;
 
-    public int requestLine() throws IOException, NumberFormatException {
-        String response = "";
-        int line = -1;
-
-        this.output.writeBytes("request line\n");
-        while (!response.equals("end")) {
-            if (response.startsWith("line:")) {
-                line = Integer.parseInt(response.split(":")[1]);
+    public void calculateIteration() {
+        for (int i = 0; i < this.linesToCalculate.length; i ++) {
+            try {
+                this.updateLine(this.linesToCalculate[i]);
+                System.out.println(String.valueOf(this.linesToCalculate[i]));
+            } catch (IOException err) {
+                err.printStackTrace();
             }
+        }
+    }
+
+    public List<Color> calculateLine(int i) {
+        List<Color> newLine = new ArrayList<Color>();
+        for (int j = 1; j < this.size - 1; j ++) {
+            Color color = Stencil.avgColor(
+                map[i][j],
+                map[i - 1][j],
+                map[i][j -1],
+                map[i + 1][j],
+                map[i][j + 1]
+            );
+            newLine.add(color);
+        }
+        return newLine;
+    }
+
+    public void updateLine(int line) throws IOException, NumberFormatException {
+        String response = "";
+
+        this.output.writeBytes("request line:" + String.valueOf(line) + "\n");
+        while (!response.equals("end")) {
             if (response.matches("([0-9]+( )*){5}")) {
                 Map<String, Object> point = Stencil.lineToPoint(response, this.size);
                 int xCoord = (int) point.get("x");
@@ -31,12 +56,18 @@ public class Client {
             }
             response = this.input.readLine();
         }
-        return line;
+
+        List<Color> newLine = this.calculateLine(line);
+        for (int j = 0; j < newLine.size(); j ++) {
+            this.output.writeBytes(Stencil.pointToLine(line, j + 1, newLine.get(j)) + "\n");
+        }
+        this.output.writeBytes("end\n");
     }
 
-    public Client(int size) throws IOException {
+    public Client(int size, int[] linesToCalculate) throws IOException {
         this.size = size;
-        this.map = new Color[this.size][this.size];
+        this.linesToCalculate = linesToCalculate;
+        this.map = Stencil.initMap(size);
         this.socket = new Socket("localhost", 5564);  
         this.output = new DataOutputStream(this.socket.getOutputStream());
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));

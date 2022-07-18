@@ -1,5 +1,8 @@
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.List;
+import java.util.ArrayList;
 import java.awt.Color;
 
 public class Main {
@@ -21,8 +24,32 @@ public class Main {
 
         Server server = new Server(size, map, fixedPoints, nClients);
         server.start();
-        Client client = new Client(size);
+        List<Client> clients = new ArrayList<Client>();
 
-        client.requestLine();
+        for (int i = 0; i < nClients; i ++) {
+            int section = (size - 2) / nClients;
+            int[] linesToCalculate = IntStream.range((i * section) + 1, (i + 1) * section).toArray();
+            Client client = new Client(size, linesToCalculate);
+            clients.add(client);
+        }
+
+        for (int iter = 0; iter < 1000; iter ++) {
+            List<Thread> threads = new ArrayList<Thread>();
+            clients.forEach(client -> {
+                Thread thread = new Thread(() -> {
+                    client.calculateIteration();
+                });
+                thread.start();
+                threads.add(thread);
+            });
+
+            threads.forEach(thread -> {
+                try {
+                    thread.join();
+                } catch (InterruptedException err) {
+                    err.printStackTrace();
+                }
+            });
+        }
     }
 }
