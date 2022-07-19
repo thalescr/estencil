@@ -12,9 +12,12 @@ import java.util.Arrays;
 import java.awt.Color;
 import java.lang.IllegalArgumentException;
 
+// Classe Stencil define vários métodos úteis para o algoritmo
 public class Stencil {
+
+    // Inicializa uma imagem de um dado tamanho
     public static Color[][] initMap(int size) {
-        size = size + 2;
+        size = size + 2; // Adiciona as bordas da imagem
         Color[][] map = new Color[size][size];
         for (int i = 0; i < size; i = i + 1) {
             for (int j = 0; j < size; j = j + 1) {
@@ -28,6 +31,7 @@ public class Stencil {
         return map;
     }
 
+    // Calcula a média de dados 5 valores
     public static int calculateAvg(
         int value1,
         int value2,
@@ -38,6 +42,7 @@ public class Stencil {
         return (value1 + value2 + value3 + value4 + value5) / 5;
     }
 
+    // Calcula a cor média a partir das 5 cores adjacentes
     public static Color avgColor(
         Color color1,
         Color color2,
@@ -53,6 +58,7 @@ public class Stencil {
         return result;
     }
 
+    // Escreve uma imagem em um arquivo de texto
     public static void outputToFile(Color[][] map) {
         int size = map.length;
         try {
@@ -73,6 +79,7 @@ public class Stencil {
         }
     }
 
+    // Transforma um ponto (coordenadas e cor) em uma string
     public static String pointToLine(int x, int y, Color color) {
         return String.valueOf(x) + " " +
             String.valueOf(y) + " " +
@@ -81,6 +88,7 @@ public class Stencil {
             String.valueOf(color.getBlue());
     }
 
+    // Transforma uma string de 5 inteiros em um ponto com coordenadas e uma cor
     public static Map<String, Object> lineToPoint(String line, int size) {
         if (line == null) {
             throw new IllegalArgumentException();
@@ -94,34 +102,47 @@ public class Stencil {
         int green = Integer.parseInt(line.split(" ")[3]);
         int blue = Integer.parseInt(line.split(" ")[4]);
 
+        // Validação das coordenadas e da cor
         if (xCoord > size || yCoord > size || red > 255 || green > 255 || blue > 255) {
             System.out.println("Erro ao ler linha: " + line);
             throw new IllegalArgumentException();
         }
 
+        // Retorna as coordenadas e a cor em uma estrutura de dados chamada Map
         point.put("x", xCoord);
         point.put("y", yCoord);
         point.put("color", new Color(red, green, blue));
         return point;
     }
 
+    // Lê o arquivo de entrada
     public static Map<String, Object> inputFileToMap() {
         Color[][] map = new Color[1][1];
         List<int[]> fixedPoints = new ArrayList<int[]>();
         Map<String, Object> result = new HashMap<String, Object>();
+
         try {
+            // Cria um leitor do arquivo "input.dat"
             FileReader fileReader = new FileReader("input.dat");
             BufferedReader reader = new BufferedReader(fileReader);
             String currentLine = reader.readLine();
+
+            // Guarda o tamanho e o número de pontos fixos
             int size = Integer.parseInt(currentLine.split(" ")[0]);
             int nFixedPoints = Integer.parseInt(currentLine.split(" ")[1]);
             map = initMap(size);
 
+            // Itera sobre o número de pontos fixos ao ler as linhas seguintes
             for (int i = 0; i < nFixedPoints; i = i + 1) {
+                // Converte a string de 5 inteiros em um par de coordenadas e uma cor
                 Map<String, Object> point = lineToPoint(reader.readLine(), size);
                 int xCoord = (int) point.get("x");
                 int yCoord = (int) point.get("y");
+
+                // Insere o ponto fixo lido na imagem
                 map[xCoord][yCoord] = (Color) point.get("color");
+
+                // Adiciona as coordenadas do ponto fixo na lista de pontos fixos
                 int[] coord = {xCoord, yCoord};
                 fixedPoints.add(coord);
             }
@@ -129,13 +150,18 @@ public class Stencil {
         } catch (IOException | NumberFormatException  err) {
             err.printStackTrace();
         }
+
+        // Converte a lista de pontos fixos em uma matriz de inteiros
         int[][] fixedPointsArr = new int[fixedPoints.size()][2];
         Arrays.setAll(fixedPointsArr, fixedPoints::get);
+
+        // Retorna os valores em uma estrutura de dados chamada Map
         result.put("map", map);
         result.put("fixedPoints", fixedPointsArr);
         return result;
     }
 
+    // Transforma uma cor em uma string do formato "< R, G, B >"
     public static String colorToString(Color color) {
         return (
             "< " + String.valueOf(color.getRed()) + ", " +
@@ -144,6 +170,7 @@ public class Stencil {
         );
     }
 
+    // Printa uma cor
     public static void printColor(Color color) {
         System.out.println(colorToString(color));
     }

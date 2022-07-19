@@ -13,16 +13,6 @@ public class Server extends Thread {
     int[][] fixedPoints;
     int nClients;
 
-    public List<String> getLine(int lineNumber) {
-        List<String> line = new ArrayList<String>();
-        for (int i = lineNumber - 1; i < lineNumber + 2; i ++) {
-            for (int j = 1; j < size -1; j ++) {
-                line.add(Stencil.pointToLine(i, j, this.map[i][j]));
-            }
-        }
-        return line;
-    }
-
     public void run() {
         while (this.threads.size() < this.nClients) {
             try {
