@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.awt.Color;
 
-public class Client {
+public class Client extends Thread {
     int size;
     Color[][] map;
     Socket socket;
@@ -16,15 +16,27 @@ public class Client {
     BufferedReader input;
     int[] linesToCalculate;
 
-    // Calcula cada linha que foi informado para o cliente calcular
-    public void calculateIteration() {
-        for (int i = 0; i < this.linesToCalculate.length; i ++) {
-            try {
-                this.updateLine(this.linesToCalculate[i]);
-            } catch (IOException err) {
-                err.printStackTrace();
+    public void run() {
+        String message = "";
+        try {
+            while(!message.equals("finish")) {
+                if (message.startsWith("iter ")) {
+                    this.calculateIteration();
+                }
+                message = this.input.readLine();
             }
+            this.socket.close();
+        } catch (IOException err) {
+            err.printStackTrace();
         }
+    }
+
+    // Calcula cada linha que foi informado para o cliente calcular
+    public void calculateIteration() throws IOException, NumberFormatException {
+        for (int i = 0; i < this.linesToCalculate.length; i ++) {
+            this.updateLine(this.linesToCalculate[i]);
+        }
+        this.output.writeBytes("finish iter\n");
     }
 
     // Itera sobre os pontos recebidos e calcula uma nova linha
@@ -35,11 +47,11 @@ public class Client {
         for (int j = 1; j < this.size - 1; j ++) {
             // Calcula a média dos pontos
             Color color = Stencil.avgColor(
-                map[i][j],
-                map[i - 1][j],
-                map[i][j -1],
-                map[i + 1][j],
-                map[i][j + 1]
+                this.map[i][j],
+                this.map[i - 1][j],
+                this.map[i][j -1],
+                this.map[i + 1][j],
+                this.map[i][j + 1]
             );
             newLine.add(color);
         }
@@ -55,7 +67,7 @@ public class Client {
 
         // Enquanto não receber uma mensagem "end", recebe os pontos e guarda em uma matriz auxiliar
         while (!response.equals("end")) {
-            if (response.matches("([0-9]+( )*){5}")) {
+            if (response.matches("([0-9]+( )){4}[0-9]+")) {
                 Map<String, Object> point = Stencil.lineToPoint(response, this.size);
                 int xCoord = (int) point.get("x");
                 int yCoord = (int) point.get("y");
@@ -70,7 +82,8 @@ public class Client {
 
         // Envia de volta a nova linha calculada para o servidor
         for (int j = 0; j < newLine.size(); j ++) {
-            this.output.writeBytes(Stencil.pointToLine(line, j + 1, newLine.get(j)) + "\n");
+            String result = Stencil.pointToLine(line, j + 1, newLine.get(j));
+            this.output.writeBytes(result + "\n");
         }
 
         this.output.writeBytes("end\n");

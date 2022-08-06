@@ -95,24 +95,31 @@ public class Stencil {
         }
 
         Map<String, Object> point = new HashMap<String, Object>();
-        int xCoord = Integer.parseInt(line.split(" ")[0]);
-        int yCoord = Integer.parseInt(line.split(" ")[1]);
+        String[] splittedLine = line.split(" ");
+        if (splittedLine.length == 5) {
+            int xCoord = Integer.parseInt(splittedLine[0]);
+            int yCoord = Integer.parseInt(splittedLine[1]);
+    
+            int red = Integer.parseInt(splittedLine[2]);
+            int green = Integer.parseInt(splittedLine[3]);
+            int blue = Integer.parseInt(splittedLine[4]);
 
-        int red = Integer.parseInt(line.split(" ")[2]);
-        int green = Integer.parseInt(line.split(" ")[3]);
-        int blue = Integer.parseInt(line.split(" ")[4]);
+            // Validação das coordenadas e da cor
+            if (xCoord > size || yCoord > size || red > 255 || green > 255 || blue > 255) {
+                System.out.println("Erro ao ler linha: " + line);
+                throw new IllegalArgumentException();
+            }
 
-        // Validação das coordenadas e da cor
-        if (xCoord > size || yCoord > size || red > 255 || green > 255 || blue > 255) {
-            System.out.println("Erro ao ler linha: " + line);
+            // Retorna as coordenadas e a cor em uma estrutura de dados chamada Map
+            point.put("x", xCoord);
+            point.put("y", yCoord);
+            point.put("color", new Color(red, green, blue));
+            return point;
+
+        } else {
+            System.out.println("Linha faltando argumentos: " + String.valueOf(line));
             throw new IllegalArgumentException();
         }
-
-        // Retorna as coordenadas e a cor em uma estrutura de dados chamada Map
-        point.put("x", xCoord);
-        point.put("y", yCoord);
-        point.put("color", new Color(red, green, blue));
-        return point;
     }
 
     // Lê o arquivo de entrada

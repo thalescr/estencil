@@ -39,47 +39,8 @@ public class Main {
 
             // Instancia o cliente enviando o tamanho da imagem e as linhas que o cliente ficará responsável por calcular
             Client client = new Client(size, linesToCalculate);
+            client.start();
             clients.add(client);
         }
-
-        // Inicializa o cronômetro para medir o tempo de execução
-        StopWatch stopWatch = new StopWatch();
-
-        // Laço de iterações do estencil
-        for (int iter = 0; iter < 10; iter ++) {
-            // Coloca cada cliente para calcular sua parte da imagem
-            List<Thread> threads = new ArrayList<Thread>();
-            clients.forEach(client -> {
-                Thread thread = new Thread(() -> {
-                    client.calculateIteration();
-                });
-                thread.start();
-                threads.add(thread);
-            });
-
-            // Aguarda todos os clientes terminarem de calcular suas iterações
-            threads.forEach(thread -> {
-                try {
-                    thread.join();
-                } catch (InterruptedException err) {
-                    err.printStackTrace();
-                }
-            });
-        }
-
-        // Fecha os sockets dos clientes
-        clients.forEach(client -> {
-            try {
-                client.socket.close();
-            } catch (IOException err) {
-                err.printStackTrace();
-            }
-        });
-
-        // Mostra o tempo decorrido
-        stopWatch.printElapsedTime();
-
-        // Exporta a imagem
-        Stencil.outputToFile(server.map);
     }
 }
