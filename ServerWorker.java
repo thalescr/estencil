@@ -33,40 +33,47 @@ public class ServerWorker {
             int yCoord = this.server.fixedPoints[i][1];
             output += String.valueOf(xCoord) + "," + String.valueOf(yCoord) + " ";
         }
+        output = output.substring(0, output.length() - 1);
         this.output.writeBytes(output + "\n");
     }
 
     private void sendRequestedLine(int lineNumber) throws IOException {
+        String output = "line " + String.valueOf(lineNumber) + ":";
         // Pega os pontos das linhas anteriores e posteriores a linha solicitada
         for (int i = lineNumber - 1; i < lineNumber + 2; i ++) {
             for (int j = 1; j < this.server.map.length - 1; j ++) {
                 Color color = this.server.map[i][j];
-                try {
-                    // Envia cada ponto para o servidor em uma string
-                    String line = Stencil.pointToLine(i, j, color);
-                    this.output.writeBytes(line + "\n");
-                } catch (IOException err) {
-                    err.printStackTrace();
-                }
+                String line = Stencil.pointToLine(i, j, color);
+                output = output + line + ",";
             }
         }
 
-        // Envia uma mensagem sinalizando o fim da linha enviada
-        this.output.writeBytes("end\n");
+        // Envia os pontos das linhas separados por virgula
+        try {
+            output = output.substring(0, output.length() - 1);
+            this.output.writeBytes(output + "\n");
+        } catch (IOException err) {
+            err.printStackTrace();
+        }
     }
 
     // Armazena uma linha calculada pelo cliente no mapa principal
     private void saveCalculatedLine(String message) {
-        Map<String, Object> point = Stencil.lineToPoint(message, this.server.size);
-        int xCoord = (int) point.get("x");
-        int yCoord = (int) point.get("y");
-        Color color = (Color) point.get("color");
+        String pointsLine = message.split(":")[1];
+        String[] points = pointsLine.split(",");
 
-        // Insere o novo ponto em um mapa auxiliar
-        this.auxMap[xCoord][yCoord] = color;
+        for (int i = 0; i < points.length; i ++) {
+            Map<String, Object> point = Stencil.lineToPoint(points[i], this.size);
+            int xCoord = (int) point.get("x");
+            int yCoord = (int) point.get("y");
+            Color color = (Color) point.get("color");
 
-        // Salva o número da linha calculada
-        this.calculatedLines.add(xCoord);
+            // Insere o novo ponto em um mapa auxiliar
+            this.auxMap[xCoord][yCoord] = color;
+
+            // Salva o número da linha calculada
+            this.calculatedLines.add(xCoord);
+        }
     }
 
     // Envia uma mensagem sinalizando o fim de todas as iterações
@@ -94,10 +101,9 @@ public class ServerWorker {
                 this.sendRequestedLine(lineNumber);
             }
 
-            // Caso a mensagem seja em formato de 5 inteiros representando
-            // um ponto, então o servidor está recebendo a resposta do
-            // cliente (nova linha calculada)
-            if (message.matches("([0-9]+( )){4}[0-9]+")) {
+            // Caso a mensagem seja uma "new line" então o servidor está recebendo
+            // a resposta do cliente (nova linha calculada)
+            if (message.matches("new line [0-9]+:(.)*")) {
                 this.saveCalculatedLine(message);
             }
 

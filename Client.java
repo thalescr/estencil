@@ -99,29 +99,33 @@ public class Client extends Thread {
         // Envia mensagem solicitando uma determinada linha
         this.output.writeBytes("request line:" + String.valueOf(line) + "\n");
 
-        // Enquanto não receber uma mensagem "end", recebe os pontos e guarda em uma matriz auxiliar
-        while (!response.equals("end")) {
-            if (response.matches("([0-9]+( )){4}[0-9]+")) {
-                Map<String, Object> point = Stencil.lineToPoint(response, this.size);
-                int xCoord = (int) point.get("x");
-                int yCoord = (int) point.get("y");
-                Color color = (Color) point.get("color");
-                this.map[(xCoord - line) + 1][yCoord] = color;
-            }
+        while(!response.startsWith("line")) {
             response = this.input.readLine();
+
+            // Ao receber uma mensagem "line", recebe os pontos e guarda em uma matriz auxiliar
+            if (response.matches("line [0-9]+:(.)*")) {
+                String pointsLine = response.split(":")[1];
+                String[] points = pointsLine.split(",");
+                for (int i = 0; i < points.length; i ++) {
+                    Map<String, Object> point = Stencil.lineToPoint(points[i], this.size);
+                    int xCoord = (int) point.get("x");
+                    int yCoord = (int) point.get("y");
+                    Color color = (Color) point.get("color");
+                    this.map[(xCoord - line) + 1][yCoord] = color;
+                }
+            }
         }
 
         // Chama a função de calcular uma nova linha a partir dos dados recebidos
         List<Color> newLine = this.calculateLine(line);
 
         // Envia de volta a nova linha calculada para o servidor
+        String output = "new line " + String.valueOf(line) + ":";
         for (int j = 0; j < newLine.size(); j ++) {
-            String result = Stencil.pointToLine(line, j + 1, newLine.get(j));
-            this.output.writeBytes(result + "\n");
+            String point = Stencil.pointToLine(line, j + 1, newLine.get(j));
+            output = output + point + ",";
         }
-
-        // Envia uma mensagem ao servidor sinalizando o fim da nova linha calculada
-        this.output.writeBytes("end\n");
+        this.output.writeBytes(output + "\n");
     }
 
     // Instancia um novo cliente passando o tamanho do mapa e a lista de
