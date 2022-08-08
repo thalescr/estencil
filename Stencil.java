@@ -58,10 +58,10 @@ public class Stencil {
     }
 
     // Escreve uma imagem em um arquivo de texto
-    public static void outputToFile(Color[][] map) {
+    public static void outputToFile(Color[][] map, String filename) {
         int size = map.length;
         try {
-            FileOutputStream fileOutput = new FileOutputStream("output.dat");
+            FileOutputStream fileOutput = new FileOutputStream(filename);
             BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(fileOutput));
             for (int i = 1; i < size - 1; i = i + 1) {
                 String newLine = "";
@@ -88,7 +88,7 @@ public class Stencil {
     }
 
     // Transforma uma string de 5 inteiros em um ponto com coordenadas e uma cor
-    public static Map<String, Object> lineToPoint(String line, int size) {
+    public static Map<String, Object> lineToPoint(String line) {
         if (line == null) {
             throw new IllegalArgumentException();
         }
@@ -103,8 +103,8 @@ public class Stencil {
             int green = Integer.parseInt(splittedLine[3]);
             int blue = Integer.parseInt(splittedLine[4]);
 
-            // Validação das coordenadas e da cor
-            if (xCoord > size || yCoord > size || red > 255 || green > 255 || blue > 255) {
+            // Validação dos valores da cor
+            if (red > 255 || green > 255 || blue > 255) {
                 System.out.println("Erro ao ler linha: " + line);
                 throw new IllegalArgumentException();
             }
@@ -122,14 +122,14 @@ public class Stencil {
     }
 
     // Lê o arquivo de entrada
-    public static Map<String, Object> inputFileToMap() {
+    public static Map<String, Object> inputFileToMap(String filename) {
         Color[][] map = new Color[1][1];
         List<int[]> fixedPoints = new ArrayList<int[]>();
         Map<String, Object> result = new HashMap<String, Object>();
 
         try {
             // Cria um leitor do arquivo "input.dat"
-            FileReader fileReader = new FileReader("input.dat");
+            FileReader fileReader = new FileReader(filename);
             BufferedReader reader = new BufferedReader(fileReader);
             String currentLine = reader.readLine();
 
@@ -141,7 +141,7 @@ public class Stencil {
             // Itera sobre o número de pontos fixos ao ler as linhas seguintes
             for (int i = 0; i < nFixedPoints; i = i + 1) {
                 // Converte a string de 5 inteiros em um par de coordenadas e uma cor
-                Map<String, Object> point = lineToPoint(reader.readLine(), size);
+                Map<String, Object> point = lineToPoint(reader.readLine());
                 int xCoord = (int) point.get("x");
                 int yCoord = (int) point.get("y");
 

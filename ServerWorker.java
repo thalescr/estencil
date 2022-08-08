@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 
 public class ServerWorker {
@@ -14,7 +13,7 @@ public class ServerWorker {
     DataOutputStream output;
     int size;
     Color[][] auxMap;
-    List<Integer> calculatedLines;
+    List<Integer> linesToCalculate;
 
     public ServerWorker(Server server, Socket socket) throws IOException {
         // Salva o socket, cria input e output para ler e escrever para o cliente
@@ -23,11 +22,21 @@ public class ServerWorker {
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
         this.output = new DataOutputStream(this.socket.getOutputStream());
         this.size = this.server.size;
-        this.auxMap = new Color[this.size - 1][this.size - 1];
+        this.auxMap = Stencil.initMap(this.size);
     }
 
-    public void sendFixedPoints() throws IOException {
-        String output = "fixed points:";
+    public void sendInitialInfo() throws IOException {
+        // Envia o tamanho do mapa
+        String output = "size:" + String.valueOf(this.size);
+
+        // Envia as linhas que serão calculadas
+        output = output + ";lines to calculate:";
+        for (int i = 0; i < this.linesToCalculate.size(); i ++) {
+            output += String.valueOf(this.linesToCalculate.get(i)) + ",";
+        }
+        output = output.substring(0, output.length() - 1) + ";fixed points:";
+
+        // Envia os pontos fixos
         for (int i = 0; i < this.server.fixedPoints.length; i ++) {
             int xCoord = this.server.fixedPoints[i][0];
             int yCoord = this.server.fixedPoints[i][1];
@@ -37,23 +46,25 @@ public class ServerWorker {
         this.output.writeBytes(output + "\n");
     }
 
-    private void sendRequestedLine(int lineNumber) throws IOException {
-        String output = "line " + String.valueOf(lineNumber) + ":";
-        // Pega os pontos das linhas anteriores e posteriores a linha solicitada
-        for (int i = lineNumber - 1; i < lineNumber + 2; i ++) {
-            for (int j = 1; j < this.server.map.length - 1; j ++) {
+    private void sendLinesToCalculate() throws IOException {
+        int startIndex = this.linesToCalculate.get(0) - 1;
+        int stopIndex = this.linesToCalculate.get(this.linesToCalculate.size() - 1) + 1;
+
+        for (int i = startIndex; i < stopIndex + 1; i ++) {
+            String output = "line " + String.valueOf(i) + ":";
+            for (int j = 1; j < this.size - 1; j ++) {
                 Color color = this.server.map[i][j];
                 String line = Stencil.pointToLine(i, j, color);
                 output = output + line + ",";
             }
-        }
 
-        // Envia os pontos das linhas separados por virgula
-        try {
-            output = output.substring(0, output.length() - 1);
-            this.output.writeBytes(output + "\n");
-        } catch (IOException err) {
-            err.printStackTrace();
+            // Envia os pontos das linhas separados por virgula
+            try {
+                output = output.substring(0, output.length() - 1);
+                this.output.writeBytes(output + "\n");
+            } catch (IOException err) {
+                err.printStackTrace();
+            }
         }
     }
 
@@ -63,16 +74,13 @@ public class ServerWorker {
         String[] points = pointsLine.split(",");
 
         for (int i = 0; i < points.length; i ++) {
-            Map<String, Object> point = Stencil.lineToPoint(points[i], this.size);
+            Map<String, Object> point = Stencil.lineToPoint(points[i]);
             int xCoord = (int) point.get("x");
             int yCoord = (int) point.get("y");
             Color color = (Color) point.get("color");
 
             // Insere o novo ponto em um mapa auxiliar
             this.auxMap[xCoord][yCoord] = color;
-
-            // Salva o número da linha calculada
-            this.calculatedLines.add(xCoord);
         }
     }
 
@@ -86,8 +94,8 @@ public class ServerWorker {
     public void callNewIteration(int iter) throws IOException {
         String message = "";
 
-        // Limpa a lista de linhas calculadas
-        this.calculatedLines = new ArrayList<Integer>();
+        // Envia as linhas para o cliente
+        this.sendLinesToCalculate();
 
         // Informa o cliente o início de uma nova iteração
         this.output.writeBytes("iter " + String.valueOf(iter) + "\n");
@@ -95,12 +103,6 @@ public class ServerWorker {
         // Recebe a requisição de uma linha e as linhas calculadas
         // até o fim da iteração
         while (!message.equals("finish iter")) {
-            // Caso a mensagem seja uma solicitação de uma linha
-            if (message.startsWith("request line:")) {
-                int lineNumber = Integer.parseInt(message.split(":")[1]);
-                this.sendRequestedLine(lineNumber);
-            }
-
             // Caso a mensagem seja uma "new line" então o servidor está recebendo
             // a resposta do cliente (nova linha calculada)
             if (message.matches("new line [0-9]+:(.)*")) {
@@ -112,7 +114,7 @@ public class ServerWorker {
         }
 
         // Commita as linhas calculadas na imagem ao fim de cada iteração
-        this.calculatedLines.forEach(i -> {
+        this.linesToCalculate.forEach(i -> {
             for (int j = 1; j < this.size - 1; j ++) {
                 this.server.map[i][j] = this.auxMap[i][j];
             }

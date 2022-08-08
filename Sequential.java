@@ -36,12 +36,12 @@ public class Sequential {
     }
 
     public static void main(String[] args) {
-        Map<String, Object> result = Stencil.inputFileToMap();
+        Map<String, Object> result = Stencil.inputFileToMap("input.dat");
         Color[][] map = (Color[][]) result.get("map");
         int[][] fixedPoints = (int[][]) result.get("fixedPoints");
         StopWatch stopWatch = new StopWatch();
-        sequential(map, fixedPoints, 10000);
+        sequential(map, fixedPoints, 3);
         stopWatch.printElapsedTime();
-        Stencil.outputToFile(map);
+        Stencil.outputToFile(map, "output.dat");
     }
 }

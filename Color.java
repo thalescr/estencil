@@ -36,4 +36,12 @@ public class Color {
     public int getBlue() {
         return byteToInt(this.blue);
     }
+
+    public String toString() {
+        return (
+            "< " + String.valueOf(this.getRed()) + ", " +
+            String.valueOf(this.getGreen()) + ", " +
+            String.valueOf(this.getBlue()) + " > "
+        );
+    }
 }

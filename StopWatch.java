@@ -10,6 +10,6 @@ public class StopWatch {
     // Printa o tempo decorrido armazenando o tempo atual e subtraindo do tempo inicial
     public void printElapsedTime() {
         long elapsedTime = System.currentTimeMillis() - this.startedTime;
-        System.out.println("TIME: " + String.valueOf(elapsedTime));
+        System.out.println("TIME: " + String.valueOf((float) elapsedTime / 1000));
     }
 }

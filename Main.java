@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.IntStream;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -18,12 +17,12 @@ public class Main {
         }
 
         // Lê o arquivo de entrada input.dat
-        Map<String, Object> result = Stencil.inputFileToMap();
+        Map<String, Object> result = Stencil.inputFileToMap("input.dat");
 
         // Salva o mapa de bits, os pontos fixos e o tamanho
         Color[][] map = (Color[][]) result.get("map");
         int[][] fixedPoints = (int[][]) result.get("fixedPoints");
-        int size = map.length;
+        int size = map.length - 2;
 
         // Instancia e inicializa o servidor
         Server server = new Server(size, map, fixedPoints, nClients);
@@ -32,12 +31,8 @@ public class Main {
         // Cria uma lista de clientes
         List<Client> clients = new ArrayList<Client>();
         for (int i = 0; i < nClients; i ++) {
-            // Calcula os números das linhas que cada cliente irá calcular e salva em linesToCalculate
-            int section = (size - 2) / nClients;
-            int[] linesToCalculate = IntStream.range((i * section) + 1, ((i + 1) * section) + 1).toArray();
-
-            // Instancia o cliente enviando o tamanho da imagem e as linhas que o cliente ficará responsável por calcular
-            Client client = new Client(size, linesToCalculate);
+            // Instancia o cliente
+            Client client = new Client();
             client.start();
             clients.add(client);
         }
