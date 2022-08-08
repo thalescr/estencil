@@ -3,7 +3,6 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.List;
 import java.util.ArrayList;
-import java.awt.Color;
 
 public class Main {
     public static void main(String[] argv) throws NumberFormatException, IOException {
@@ -35,7 +34,7 @@ public class Main {
         for (int i = 0; i < nClients; i ++) {
             // Calcula os números das linhas que cada cliente irá calcular e salva em linesToCalculate
             int section = (size - 2) / nClients;
-            int[] linesToCalculate = IntStream.range((i * section) + 1, (i + 1) * section).toArray();
+            int[] linesToCalculate = IntStream.range((i * section) + 1, ((i + 1) * section) + 1).toArray();
 
             // Instancia o cliente enviando o tamanho da imagem e as linhas que o cliente ficará responsável por calcular
             Client client = new Client(size, linesToCalculate);

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
-import java.awt.Color;
 import java.lang.IllegalArgumentException;
 
 // Classe Stencil define vários métodos úteis para o algoritmo
@@ -175,6 +174,12 @@ public class Stencil {
             String.valueOf(color.getGreen()) + ", " +
             String.valueOf(color.getBlue()) + " > "
         );
+    }
+
+    // Verifica se uma coordenada está presenta em uma lista de pontos fixos
+    public static boolean isPointFixed(int[][] fixedPoints, int xCoord, int yCoord) {
+        List<int[]> points = Arrays.asList(fixedPoints);
+        return points.stream().filter(o -> o[0] == xCoord && o[1] == yCoord).findFirst().isPresent();
     }
 
     // Printa uma cor

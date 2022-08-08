@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.awt.Color;
 
 public class Client extends Thread {
     int size;
@@ -15,14 +14,47 @@ public class Client extends Thread {
     DataOutputStream output;
     BufferedReader input;
     int[] linesToCalculate;
+    int[][] fixedPoints;
 
+    // Laço principal do cliente para solicitar as linhas e
+    // calculá-las enviando o resultado de volta para o servidor.
     public void run() {
         String message = "";
         try {
-            while(!message.equals("finish")) {
-                if (message.startsWith("iter ")) {
-                    this.calculateIteration();
+            // Inicialmente recebe os pontos fixos do servidor
+            while (!message.startsWith("fixed points:")) {
+                message = this.input.readLine();
+                if (message.startsWith("fixed points:")) {
+                    String pointsLine = message.split(":")[1];
+                    // Separa os pontos fixos e os armazena em um vetor
+                    String[] points = pointsLine.split(" ");
+                    this.fixedPoints = new int[points.length][2];
+                    for (int i = 0; i < points.length; i ++) {
+                        String[] coords = points[i].split(",");
+                        this.fixedPoints[i][0] = Integer.parseInt(coords[0]);
+                        this.fixedPoints[i][1] = Integer.parseInt(coords[1]);
+                    }
                 }
+            }
+        } catch (IOException err) {
+            err.printStackTrace();
+        }
+
+        try {
+            // LAÇO PRINCIPAL: Enquanto não receber um 'finish' do servidor
+            while(!message.equals("finish")) {
+                // Mensagem sinalizando o início de uma iteração (ex: 'iter 5')
+                if (message.startsWith("iter ")) {
+                    // Solicita e calcula todas as linhas definidas
+                    // ao instanciar o cliente.
+                    for (int i = 0; i < this.linesToCalculate.length; i ++) {
+                        this.updateLine(this.linesToCalculate[i]);
+                    }
+
+                    // Envia uma mensagem sinalizando o fim da linha calculada
+                    this.output.writeBytes("finish iter\n");
+                }
+                // Lê a mensagem seguinte do servidor
                 message = this.input.readLine();
             }
             this.socket.close();
@@ -31,34 +63,36 @@ public class Client extends Thread {
         }
     }
 
-    // Calcula cada linha que foi informado para o cliente calcular
-    public void calculateIteration() throws IOException, NumberFormatException {
-        for (int i = 0; i < this.linesToCalculate.length; i ++) {
-            this.updateLine(this.linesToCalculate[i]);
-        }
-        this.output.writeBytes("finish iter\n");
-    }
-
     // Itera sobre os pontos recebidos e calcula uma nova linha
-    public List<Color> calculateLine() {
+    public List<Color> calculateLine(int xCoord) {
         int i = 1;
         List<Color> newLine = new ArrayList<Color>();
 
         for (int j = 1; j < this.size - 1; j ++) {
-            // Calcula a média dos pontos
-            Color color = Stencil.avgColor(
-                this.map[i][j],
-                this.map[i - 1][j],
-                this.map[i][j -1],
-                this.map[i + 1][j],
-                this.map[i][j + 1]
-            );
+            Color color;
+            // Pula a iteração caso o ponto esteja no vetor de pontos fixos
+            if (Stencil.isPointFixed(fixedPoints, xCoord, j)) {
+                color = this.map[i][j];
+            } else {
+                // Calcula a média dos pontos
+                color = Stencil.avgColor(
+                    this.map[i][j],
+                    this.map[i - 1][j],
+                    this.map[i][j -1],
+                    this.map[i + 1][j],
+                    this.map[i][j + 1]
+                );
+            }
+            // Salva o novo ponto em uma lista
             newLine.add(color);
         }
+
+        // Devolve a lista de pontos que representa a nova linha
         return newLine;
     }
 
-    // Método responsável por solicitar um conjunto de pontos para calcular uma linha e devolvê-la ao servidor
+    // Método responsável por solicitar um conjunto de pontos para calcular uma linha e
+    // devolvê-la ao servidor
     public void updateLine(int line) throws IOException, NumberFormatException {
         String response = "";
 
@@ -78,7 +112,7 @@ public class Client extends Thread {
         }
 
         // Chama a função de calcular uma nova linha a partir dos dados recebidos
-        List<Color> newLine = this.calculateLine();
+        List<Color> newLine = this.calculateLine(line);
 
         // Envia de volta a nova linha calculada para o servidor
         for (int j = 0; j < newLine.size(); j ++) {
@@ -86,9 +120,12 @@ public class Client extends Thread {
             this.output.writeBytes(result + "\n");
         }
 
+        // Envia uma mensagem ao servidor sinalizando o fim da nova linha calculada
         this.output.writeBytes("end\n");
     }
 
+    // Instancia um novo cliente passando o tamanho do mapa e a lista de
+    // linhas que deverão ser calculadas pelo cliente.
     public Client(int size, int[] linesToCalculate) throws IOException {
         this.size = size;
         this.linesToCalculate = linesToCalculate;

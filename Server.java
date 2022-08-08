@@ -3,7 +3,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Color;
 
 public class Server extends Thread {
     int size;
@@ -23,15 +22,21 @@ public class Server extends Thread {
                 // o cliente.
                 Socket socket = this.serverSocket.accept();
                 ServerWorker worker = new ServerWorker(this, socket);
+
+                // Envia os pontos fixos para o cliente
+                worker.sendFixedPoints();
+
                 workers.add(worker);
             } catch (IOException err) {
                 err.printStackTrace();
             }
         }
 
+        // Realiza as iterações do algoritmo de Estêncil
         for (int iter = 0; iter < 3; iter ++) {
             int currentIteration = iter;
-            System.out.println(String.valueOf(iter));
+
+            // Cria uma lista de threads que são executadas paralelamente
             List<Thread> threads = new ArrayList<Thread>();
             workers.forEach(worker -> {
                 Thread newThread = new Thread(() -> {
@@ -46,6 +51,7 @@ public class Server extends Thread {
                 threads.add(newThread);
             });
 
+            // Aguarda o fim da execução das threads para seguir para a próxima iteração
             threads.forEach(thread -> {
                 try {
                     thread.join();
@@ -55,6 +61,8 @@ public class Server extends Thread {
             });
         }
 
+        // Após calcular todas as iterações, envia um finish para os clientes
+        // encerrarem as suas conexões.
         workers.forEach(worker -> {
             try {
                 worker.sendFinish();
@@ -63,9 +71,13 @@ public class Server extends Thread {
             }
         });
 
+        // Exporta o resultado para o arquivo output.dat
         Stencil.outputToFile(this.map);
     }
 
+    // Instancia o servidor armazenando o mapa de pontos, os pontos fixos,
+    // o tamanho do mapa, o número de clientes e o socket responsável por
+    // receber as conexões dos clientes.
     public Server(int size, Color[][] map, int[][] fixedPoints, int nClients) throws IOException {
         this.size = size;
         this.map = map;

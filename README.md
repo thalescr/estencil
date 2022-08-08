@@ -6,9 +6,11 @@
 
 ## Descrição dos arquivos
 
-- **Stencil.java**: class que contém alguns métodos úteis para o algoritmo.
+- **Stencil.java**: classe que contém alguns métodos úteis para o algoritmo.
 
 - **StopWatch.java**: cronômetro para medir o tempo de execução
+
+- **Color.java**: classe para abstrair uma cor guardando os valores R, G e B em bytes que vão de -128 a 127.
 
 - **Sequential.java**: contém instruções para rodar o algoritmo de estêncil sequencialmente.
 
