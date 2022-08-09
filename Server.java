@@ -45,7 +45,7 @@ public class Server extends Thread {
         }
 
         // Realiza as iterações do algoritmo de Estêncil
-        for (int iter = 0; iter < 1000; iter ++) {
+        for (int iter = 0; iter < 3; iter ++) {
             int currentIteration = iter;
 
             // Cria uma lista de threads que são executadas paralelamente

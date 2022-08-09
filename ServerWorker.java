@@ -15,8 +15,8 @@ public class ServerWorker {
     Color[][] auxMap;
     List<Integer> linesToCalculate;
 
+    // Salva o socket, cria input e output para ler e escrever para o cliente
     public ServerWorker(Server server, Socket socket) throws IOException {
-        // Salva o socket, cria input e output para ler e escrever para o cliente
         this.server = server;
         this.socket = socket;
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
@@ -46,10 +46,13 @@ public class ServerWorker {
         this.output.writeBytes(output + "\n");
     }
 
+    // Envia todas as linhas do conjunto de trabalho para o cliente
     private void sendLinesToCalculate() throws IOException {
+        // Calcula o número da linha de início e final
         int startIndex = this.linesToCalculate.get(0) - 1;
         int stopIndex = this.linesToCalculate.get(this.linesToCalculate.size() - 1) + 1;
 
+        // Concatena os pontos das linhas separados por virgula
         for (int i = startIndex; i < stopIndex + 1; i ++) {
             String output = "line " + String.valueOf(i) + ":";
             for (int j = 1; j < this.size - 1; j ++) {
@@ -58,7 +61,7 @@ public class ServerWorker {
                 output = output + line + ",";
             }
 
-            // Envia os pontos das linhas separados por virgula
+            // Envia a mensagem para o cliente
             try {
                 output = output.substring(0, output.length() - 1);
                 this.output.writeBytes(output + "\n");

@@ -16,6 +16,29 @@ public class Client extends Thread {
     List<Integer> linesToCalculate;
     int[][] fixedPoints;
 
+    // Itera sobre os pontos recebidos e calcula as novas linhas
+    public Color[][] calculateLines() {
+        Color[][] resultMap = Stencil.initMap(this.size);
+        this.linesToCalculate.forEach(i -> {
+            for (int j = 1; j < this.size - 1; j ++) {
+                // Pula a iteração caso o ponto esteja no vetor de pontos fixos
+                if (Stencil.isPointFixed(this.fixedPoints, i, j)) {
+                    resultMap[i][j] = this.map[i][j];
+                } else {
+                    // Calcula a média dos pontos
+                    resultMap[i][j] = Stencil.avgColor(
+                        this.map[i][j],
+                        this.map[i - 1][j],
+                        this.map[i][j -1],
+                        this.map[i + 1][j],
+                        this.map[i][j + 1]
+                    );
+                }
+            }
+        });
+        return resultMap;
+    }
+
     // Laço principal do cliente para solicitar as linhas e
     // calculá-las enviando o resultado de volta para o servidor.
     public void run() {
@@ -42,10 +65,10 @@ public class Client extends Thread {
                     this.linesToCalculate.add(Integer.parseInt(linesText[i]));
                 }
 
+                // Separa os pontos fixos e os armazena em um vetor
                 String fixedPointsMessage = message.split(";")[2];
                 String pointsLine = fixedPointsMessage.split(":")[1];
 
-                // Separa os pontos fixos e os armazena em um vetor
                 String[] points = pointsLine.split(" ");
                 this.fixedPoints = new int[points.length][2];
                 for (int i = 0; i < points.length; i ++) {
@@ -56,10 +79,8 @@ public class Client extends Thread {
             }
         }
 
-
         // LAÇO PRINCIPAL: Enquanto não receber 'finish' do servidor realiza
         // os calculos das linhas que foram recebidas e envia de volta
-
         while(!message.equals("finish")) {
             // Ao receber uma mensagem "line", recebe os pontos e guarda em uma matriz auxiliar
             if (message.matches("line [0-9]+:(.)*")) {
@@ -113,29 +134,6 @@ public class Client extends Thread {
         } catch (IOException err) {
             err.printStackTrace();
         }
-    }
-
-    // Itera sobre os pontos recebidos e calcula as novas linhas
-    public Color[][] calculateLines() {
-        Color[][] resultMap = Stencil.initMap(this.size);
-        this.linesToCalculate.forEach(i -> {
-            for (int j = 1; j < this.size - 1; j ++) {
-                // Pula a iteração caso o ponto esteja no vetor de pontos fixos
-                if (Stencil.isPointFixed(this.fixedPoints, i, j)) {
-                    resultMap[i][j] = this.map[i][j];
-                } else {
-                    // Calcula a média dos pontos
-                    resultMap[i][j] = Stencil.avgColor(
-                        this.map[i][j],
-                        this.map[i - 1][j],
-                        this.map[i][j -1],
-                        this.map[i + 1][j],
-                        this.map[i][j + 1]
-                    );
-                }
-            }
-        });
-        return resultMap;
     }
 
     // Instancia um novo cliente passando o tamanho do mapa e a lista de

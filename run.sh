@@ -1,3 +1,3 @@
 rm *.class
 javac Main.java
-java Main 2
+java Main 4

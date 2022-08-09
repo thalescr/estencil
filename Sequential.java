@@ -40,7 +40,7 @@ public class Sequential {
         Color[][] map = (Color[][]) result.get("map");
         int[][] fixedPoints = (int[][]) result.get("fixedPoints");
         StopWatch stopWatch = new StopWatch();
-        sequential(map, fixedPoints, 3);
+        sequential(map, fixedPoints, 1000);
         stopWatch.printElapsedTime();
         Stencil.outputToFile(map, "output.dat");
     }
