@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -15,9 +16,6 @@ public class Server extends Thread {
 
     public void run() {
         List<ServerWorker> workers = new ArrayList<ServerWorker>();
-
-        // Inicializa o cronometro para marcar o tempo
-        StopWatch sw = new StopWatch();
 
         // Aguarda a conexão de n clientes
         while (workers.size() < this.nClients) {
@@ -43,6 +41,9 @@ public class Server extends Thread {
                 err.printStackTrace();
             }
         }
+
+        // Inicializa o cronometro para marcar o tempo
+        StopWatch sw = new StopWatch();
 
         // Realiza as iterações do algoritmo de Estêncil
         for (int iter = 0; iter < 3; iter ++) {
@@ -90,14 +91,35 @@ public class Server extends Thread {
         Stencil.outputToFile(this.map, "output.dat");
     }
 
-    // Instancia o servidor armazenando o mapa de pontos, os pontos fixos,
-    // o tamanho do mapa, o número de clientes e o socket responsável por
-    // receber as conexões dos clientes.
-    public Server(int size, Color[][] map, int[][] fixedPoints, int nClients) throws IOException {
-        this.size = size;
-        this.map = map;
-        this.fixedPoints = fixedPoints;
+    // Instancia o servidor
+    public Server(int nClients) throws IOException {
+        // Lê o arquivo de entrada input.dat
+        Map<String, Object> result = Stencil.inputFileToMap("input.dat");
+
+        // Salva o mapa de bits, os pontos fixos e o tamanho
+        this.map = (Color[][]) result.get("map");
+        this.fixedPoints = (int[][]) result.get("fixedPoints");
+        this.size = map.length - 2;
+
+        // Salva o número de clientes e cria um socket do servidor
         this.nClients = nClients;
         this.serverSocket = new ServerSocket(5564);
+    }
+
+    public static void main(String[] argv) throws NumberFormatException, IOException {
+        // Recebe e armazena a quantidade de clientes desejada
+        if (argv != null && argv.length != 1) {
+            System.out.println("Insira a quantidade de clientes");
+            return;
+        }
+        int nClients = Integer.parseInt(argv[0]);
+        if (nClients != 2 && nClients != 4 && nClients != 8 && nClients != 16) {
+            System.out.println("A quantidade de clientes deve ser igual a 2, 4, 8 ou 16.");
+            return;
+        }
+
+        // Instancia e inicializa o servidor
+        Server server = new Server(nClients);
+        server.start();
     }
 }

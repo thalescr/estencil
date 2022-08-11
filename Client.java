@@ -144,4 +144,26 @@ public class Client extends Thread {
         this.output = new DataOutputStream(this.socket.getOutputStream());
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
     }
+
+    public static void main(String[] argv) throws NumberFormatException, IOException {
+        // Recebe e armazena a quantidade de clientes desejada
+        if (argv != null && argv.length != 1) {
+            System.out.println("Insira a quantidade de clientes");
+            return;
+        }
+        int nClients = Integer.parseInt(argv[0]);
+        if (nClients != 2 && nClients != 4 && nClients != 8 && nClients != 16) {
+            System.out.println("A quantidade de clientes deve ser igual a 2, 4, 8 ou 16.");
+            return;
+        }
+
+        // Cria uma lista de clientes
+        List<Client> clients = new ArrayList<Client>();
+        for (int i = 0; i < nClients; i ++) {
+            // Instancia o cliente
+            Client client = new Client();
+            client.start();
+            clients.add(client);
+        }
+    }
 }
