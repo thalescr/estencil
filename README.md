@@ -26,3 +26,12 @@
 javac Sequential.java
 java Sequential
 ```
+
+### Versão MPI
+
+Necessário instalar o OpenMPI seguindo [este tutorial](http://charith.wickramaarachchi.org/2014/07/how-to-install-open-mpi-java.html), em seguida executar os seguintes comandos:
+
+```sh
+mpijavac Mpi.java
+mpirun -c 2 java Mpi
+```
