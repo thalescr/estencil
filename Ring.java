@@ -1,6 +1,6 @@
 import mpi.*;
 
-public class Mpi {
+public class Ring {
     static public void main(String[] args) throws MPIException {
         MPI.Init(args);
 
